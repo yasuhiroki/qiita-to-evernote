@@ -1,0 +1,101 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activesupport (4.2.1)
+      i18n (~> 0.7)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.3, >= 0.3.4)
+      tzinfo (~> 1.1)
+    ansi (1.5.0)
+    ast (2.0.0)
+    charlock_holmes (0.7.3)
+    coderay (1.1.0)
+    crass (1.0.2)
+    dotenv (2.0.1)
+    escape_utils (1.1.0)
+    evernote-thrift (1.25.1)
+    faraday (0.9.1)
+      multipart-post (>= 1.2, < 3)
+    faraday_middleware (0.9.1)
+      faraday (>= 0.7.4, < 0.10)
+    gemoji (2.1.0)
+    github-linguist (4.5.5)
+      charlock_holmes (~> 0.7.3)
+      escape_utils (~> 1.1.0)
+      mime-types (>= 1.19)
+      rugged (~> 0.23.0b1)
+    greenmat (3.2.2.1)
+    html-pipeline (1.11.0)
+      activesupport (>= 2)
+      nokogiri (~> 1.4)
+    i18n (0.7.0)
+    json (1.8.3)
+    mem (0.1.5)
+    method_source (0.8.2)
+    mime-types (2.6.1)
+    mini_portile (0.6.2)
+    minitest (5.7.0)
+    multipart-post (2.0.0)
+    nokogiri (1.6.6.2)
+      mini_portile (~> 0.6.0)
+    nokogumbo (1.4.1)
+      nokogiri
+    oga (1.0.2)
+      ast
+      ruby-ll (~> 2.1)
+    posix-spawn (0.3.11)
+    pry (0.10.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+    pygments.rb (0.6.3)
+      posix-spawn (~> 0.3.6)
+      yajl-ruby (~> 1.2.0)
+    qiita (1.2.0)
+      activesupport
+      faraday (~> 0.9)
+      faraday_middleware
+      rack
+      rainbow
+      rouge
+      slop (< 4.0.0)
+    qiita-markdown (0.7.1)
+      activesupport
+      gemoji
+      github-linguist
+      greenmat (>= 3.2.0.2, < 4)
+      html-pipeline
+      mem
+      pygments.rb
+      rugged (>= 0.21.1b2)
+      sanitize
+    rack (1.6.1)
+    rainbow (2.0.0)
+    rake (10.4.2)
+    rouge (1.9.0)
+    ruby-ll (2.1.2)
+      ansi
+      ast
+    rugged (0.23.0b2)
+    sanitize (4.0.0)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.4.4)
+      nokogumbo (= 1.4.1)
+    slop (3.6.0)
+    thread_safe (0.3.5)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
+    yajl-ruby (1.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dotenv
+  evernote-thrift
+  oga
+  pry
+  qiita (= 1.2.0)
+  qiita-markdown
+  rake
