@@ -162,9 +162,6 @@ HEADER
     #content << qiita_markdown.call(qiita_item["body"])[:output].to_s
     content << "</en-note>"
 
-    # DEBUG
-    File.open("created.xml", 'w') {|f| f.write(content)}
-
     Evernote::EDAM::Type::Note.new({
       :title => qiita_item["title"],
       :notebookGuid => notebook_guid,
