@@ -5,6 +5,10 @@ require 'qiita-markdown'
 require 'evernote-thrift'
 require 'oga'
 
+ENML_PROHIBITED_ATTRIBUTES = [
+  "id", "class", "onclick", "ondblclick", "accesskey", "data", "dynsrc", "tabindex", "data-lang"
+]
+
 Dotenv.load
 
 def qiita_client # {{{
@@ -46,6 +50,24 @@ def evernote_client # {{{
   noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
   @noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
   return @noteStore
+end
+# }}}
+
+def to_enml_from(html) # {{{
+  def remove_attr(doc)
+    if doc.respond_to?(:children)
+      doc.children.each do |doc_c|
+        remove_attr(doc_c)
+      end
+    end
+    ENML_PROHIBITED_ATTRIBUTES.each do |attr|
+      next unless doc.respond_to?(:attribute)
+      doc.unset(attr) if doc.attribute(attr)
+    end
+    return doc
+  end
+
+  return remove_attr(Oga.parse_html(html)).to_xml
 end
 # }}}
 
@@ -136,12 +158,12 @@ HEADER
   def convert_to_evernote_note(qiita_item, notebook_guid)
     content = "#{ENML_HEADER}"
     content << "<en-note>"
-    p qiita_item["body"]
+    content << to_enml_from(qiita_item["rendered_body"]).to_s
     #content << qiita_markdown.call(qiita_item["body"])[:output].to_s
     content << "</en-note>"
 
     # DEBUG
-    # File.open("tmp.xml", 'w') {|f| f.write(content)}
+    File.open("created.xml", 'w') {|f| f.write(content)}
 
     Evernote::EDAM::Type::Note.new({
       :title => qiita_item["title"],
@@ -150,15 +172,31 @@ HEADER
     })
   end
 
-  item = items.first
-  note = convert_to_evernote_note(item, default_note_book.guid)
-  begin
-    note_store_client.createNote(ENV["EVERNOTE_TOKEN"], note)
-  rescue Evernote::EDAM::Error::EDAMUserException => e
-    p e
+  items.each do |item|
+    filter = Evernote::EDAM::NoteStore::NoteFilter.new
+    filter.words = item['title']
+
+    result_spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
+    result_spec.includeTitle = true
+
+    found_notes = note_store_client.findNotesMetadata(ENV["EVERNOTE_TOKEN"], filter, 0, 1, result_spec).notes
+    if found_notes.any?{|note| note.title == item['title']}
+      puts "#{item['title']} is exist. skip."
+      next
+    end
+
+    note = convert_to_evernote_note(item, default_note_book.guid)
+    begin
+      note_store_client.createNote(ENV["EVERNOTE_TOKEN"], note)
+    rescue Evernote::EDAM::Error::EDAMUserException => e
+      puts "- Error. Could not crete note #{item['title']}."
+      puts e.parameter
+      puts e.message
+      next
+    end
+    puts "Created #{item['title']} in evernote."
+    sleep 1.0
   end
-
-
 end
 # }}}
 
