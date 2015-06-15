@@ -3,11 +3,8 @@ require 'dotenv'
 require 'qiita'
 require 'qiita-markdown'
 require 'evernote-thrift'
-require 'oga'
 
-ENML_PROHIBITED_ATTRIBUTES = [
-  "id", "class", "onclick", "ondblclick", "accesskey", "data", "dynsrc", "tabindex", "data-lang"
-]
+require_relative './html-to-enml'
 
 Dotenv.load
 
@@ -50,24 +47,6 @@ def evernote_client # {{{
   noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
   @noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
   return @noteStore
-end
-# }}}
-
-def to_enml_from(html) # {{{
-  def remove_attr(doc)
-    if doc.respond_to?(:children)
-      doc.children.each do |doc_c|
-        remove_attr(doc_c)
-      end
-    end
-    ENML_PROHIBITED_ATTRIBUTES.each do |attr|
-      next unless doc.respond_to?(:attribute)
-      doc.unset(attr) if doc.attribute(attr)
-    end
-    return doc
-  end
-
-  return remove_attr(Oga.parse_html(html)).to_xml
 end
 # }}}
 
@@ -155,10 +134,12 @@ task "qiita:stock:to:evernote" do
 <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
 HEADER
 
+  @converter = QiitaToEvernote.new
+
   def convert_to_evernote_note(qiita_item, notebook_guid)
     content = "#{ENML_HEADER}"
     content << "<en-note>"
-    content << to_enml_from(qiita_item["rendered_body"]).to_s
+    content << @converter.to_enml_from(qiita_item["rendered_body"]).to_s
     #content << qiita_markdown.call(qiita_item["body"])[:output].to_s
     content << "</en-note>"
 
