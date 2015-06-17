@@ -39,17 +39,6 @@ def qiita_markdown # {{{
 end
 # }}}
 
-def evernote_client # {{{
-  return @noteStore if @noteStore
-
-  noteStoreUrl = ENV["EVERNOTE_NOTE_STORE"]
-  noteStoreTransport = Thrift::HTTPClientTransport.new(noteStoreUrl)
-  noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
-  @noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
-  return @noteStore
-end
-# }}}
-
 desc "Initialize dotenv" # {{{
 task :init do
   require 'io/console'
@@ -103,7 +92,8 @@ desc "Show evernote notebooks list" # {{{
 task "evernote:notebooks" do
 
   # Get your note store object
-  note_store = evernote_client
+  note_store = QiitaToEvernote.new(ENV["EVERNOTE_TOKEN"], ENV['EVERNOTE_NOTE_STORE']).evernote_client
+
 
   # List all of the notebooks in the user's account
   notebooks = note_store.listNotebooks(ENV["EVERNOTE_TOKEN"])
@@ -119,7 +109,8 @@ desc "Add qiita stoks to evernote notebook" # {{{
 task "qiita:stock:to:evernote" do
 
   # Get your note store object
-  note_store_client = evernote_client
+  @converter = QiitaToEvernote.new(ENV["EVERNOTE_TOKEN"], ENV['EVERNOTE_NOTE_STORE'])
+  note_store_client = @converter.evernote_client
 
   # Get your qiita stock items
   items = qiita_stock_items(qiita_client)
@@ -128,44 +119,17 @@ task "qiita:stock:to:evernote" do
   notebooks = note_store_client.listNotebooks(ENV["EVERNOTE_TOKEN"])
   default_note_book = notebooks.find{|n| n.name == ENV["EVERNOTE_DEFAULT_NOTEBOOK"]}
 
-  # List all of the notebooks in the user's account
-  ENML_HEADER = <<HEADER
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
-HEADER
-
-  @converter = QiitaToEvernote.new
-
-  def convert_to_evernote_note(qiita_item, notebook_guid)
-    content = "#{ENML_HEADER}"
-    content << "<en-note>"
-    content << @converter.to_enml_from(qiita_item["rendered_body"]).to_s
-    #content << qiita_markdown.call(qiita_item["body"])[:output].to_s
-    content << "</en-note>"
-
-    Evernote::EDAM::Type::Note.new({
-      :title => qiita_item["title"],
-      :notebookGuid => notebook_guid,
-      :content => content
-    })
-  end
 
   items.each do |item|
-    filter = Evernote::EDAM::NoteStore::NoteFilter.new
-    filter.words = item['title']
-
-    result_spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
-    result_spec.includeTitle = true
-
-    found_notes = note_store_client.findNotesMetadata(ENV["EVERNOTE_TOKEN"], filter, 0, 1, result_spec).notes
-    if found_notes.any?{|note| note.title == item['title']}
+    if @converter.same_title_note_exist?(item['title'])
       puts "#{item['title']} is exist. skip."
       next
     end
 
-    note = convert_to_evernote_note(item, default_note_book.guid)
     begin
-      note_store_client.createNote(ENV["EVERNOTE_TOKEN"], note)
+      note = @converter.create_note(
+        item['title'], @converter.to_enml_from(item['rendered_body']), default_note_book.guid)
+      @converter.upload_evernote(note)
     rescue Evernote::EDAM::Error::EDAMUserException => e
       puts "- Error. Could not crete note #{item['title']}."
       puts e.parameter
