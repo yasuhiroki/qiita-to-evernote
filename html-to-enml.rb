@@ -48,7 +48,7 @@ HEADER
 
   def same_title_note_exist?(title) # {{{
     filter = Evernote::EDAM::NoteStore::NoteFilter.new
-    filter.words = title
+    filter.words = 'intitle:"' + title + '"'
 
     result_spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
     result_spec.includeTitle = true
