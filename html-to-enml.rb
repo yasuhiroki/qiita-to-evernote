@@ -4,7 +4,8 @@ class QiitaToEvernote
 
   ENML_PROHIBITED_ATTRIBUTES = [
     "id", "class", "onclick", "ondblclick", "accesskey",
-    "data", "dynsrc", "tabindex", "data-lang", "data-conversation"
+    "data", "dynsrc", "tabindex", "data-lang", "data-conversation",
+    "data-partner", "alt"
   ]
 
   ENML_HEADER = <<HEADER
@@ -62,7 +63,7 @@ HEADER
   def upload_evernote(note)# {{{
     @note_store.createNote(@evernote_token, note)
   end
-# }}}
+  # }}}
 
   private #{{{
     def remove_attr(doc) # {{{
@@ -87,6 +88,7 @@ HEADER
       return doc
     end
     # }}}
+
     def escape_filter_word(word) # {{{
       if doc.respond_to?(:children)
         doc.children.each do |doc_c|
