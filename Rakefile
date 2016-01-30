@@ -119,25 +119,36 @@ task "qiita:stock:to:evernote" do
   notebooks = note_store_client.listNotebooks(ENV["EVERNOTE_TOKEN"])
   default_note_book = notebooks.find{|n| n.name == ENV["EVERNOTE_DEFAULT_NOTEBOOK"]}
 
+  QE_Error = Struct.new(:item, :exception) do
+    def out
+      puts "- Error. Could not crete note #{item['title']}."
+      puts "  - URL: #{item['url']}"
+      puts e.parameter if e.responde_to?(:parameter)
+      puts e.message
+    end
+  end
+  error = []
 
   items.each do |item|
-    if @converter.same_title_note_exist?(item['title'])
-      puts "#{item['title']} is exist. skip."
-      next
-    end
-
     begin
+      if @converter.same_title_note_exist?(item['title'])
+        puts "#{item['title']} is exist. skip."
+        next
+      end
+
       note = @converter.create_note(
         item['title'], @converter.to_enml_from(item['rendered_body']), default_note_book.guid)
       @converter.upload_evernote(note)
-    rescue Evernote::EDAM::Error::EDAMUserException => e
-      puts "- Error. Could not crete note #{item['title']}."
-      puts e.parameter
-      puts e.message
+    rescue Exception => e
+      error << QE_Error.new(item, e)
       next
     end
     puts "Created #{item['title']} in evernote."
     sleep 1.0
+  end
+
+  error.each do |e|
+    e.out
   end
 end
 # }}}
