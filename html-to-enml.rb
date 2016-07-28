@@ -30,9 +30,14 @@ HEADER
   # }}}
 
   def to_enml_from(html) # {{{
+
+    doc = remove_attr(Oga.parse_html(html))
+    doc = replace_pre_to_code(doc)
+    body = doc.to_xml.to_s
+
     content = "#{ENML_HEADER}"
     content << "<en-note>"
-    content << remove_attr(Oga.parse_html(html)).to_xml.to_s
+    content << doc.to_xml.to_s
     content << "</en-note>"
     return content
   end
@@ -107,6 +112,43 @@ HEADER
             doc.set("href", "https://qiita.com/#{href}")
           end
         end
+      end
+      return doc
+    end
+    # }}}
+
+    P_CODE_BLOCK_STYLE = {
+      "border-top-right-radius": "3px",
+      "border-top-left-radius": "3px",
+      "border-bottom-right-radius": "3px",
+      "border-bottom-left-radius": "3px",
+      "background": "#f7f7f7",
+      "margin": "1em 0",
+    }
+
+    CODE_BLOCK_STYLE = {
+      "border-top-right-radius": "3px",
+      "border-top-left-radius": "3px",
+      "border-bottom-right-radius": "3px",
+      "border-bottom-left-radius": "3px",
+      "background": "#f7f7f7",
+      "margin": "0 0",
+      "padding": ".6em 1.2em",
+    }
+
+    def replace_pre_to_code(doc) # {{{
+      if doc.respond_to?(:children)
+        doc.children.each do |doc_c|
+          replace_pre_to_code(doc_c)
+        end
+      end
+
+      return doc unless doc.respond_to?(:name)
+
+      if doc.name == "pre" && doc.parent.respond_to?("name")
+        doc.name = "code"
+        doc.set("style", CODE_BLOCK_STYLE.map{|k,v| "#{k}: #{v}"}.join(";"))
+        doc.parent.set("style", P_CODE_BLOCK_STYLE.map{|k,v| "#{k}: #{v}"}.join(";"))
       end
       return doc
     end
