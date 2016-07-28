@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/yasuhiroki/qiita-to-evernote.svg?branch=master)](https://travis-ci.org/yasuhiroki/qiita-to-evernote)
+
 # qiita-to-evernote
 
 Qiitaでストックした記事を、EvernoteのノートにするためのRakefileです。
