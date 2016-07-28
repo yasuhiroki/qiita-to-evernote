@@ -139,7 +139,7 @@ task "qiita:stock:to:evernote" do
       note = @converter.create_note(
         item['title'], @converter.to_enml_from(item['rendered_body']), default_note_book.guid)
       @converter.upload_evernote(note)
-    rescue Exception => e
+    rescue Thrift::Exception => e
       error << QE_Error.new(item, e)
       next
     end
