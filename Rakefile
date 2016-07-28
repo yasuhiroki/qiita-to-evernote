@@ -1,4 +1,6 @@
 require 'rake'
+require 'rake/testtask'
+
 require 'dotenv'
 require 'qiita'
 require 'qiita-markdown'
@@ -7,6 +9,15 @@ require 'evernote-thrift'
 require_relative './html-to-enml'
 
 Dotenv.load
+
+task default: :test
+desc 'Run test_unit' # {{{
+Rake::TestTask.new do |t|
+  t.libs << "test"
+  t.test_files = Dir["test/**/*.rb"]
+  t.verbose = true
+end
+#}}}
 
 def qiita_client # {{{
   @client ||= Qiita::Client.new(access_token: ENV["QIITA_TOKEN"])
