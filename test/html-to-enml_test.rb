@@ -19,7 +19,7 @@ class TestHtmlToEnml < Test::Unit::TestCase
     assert_equal create_enml_body('<a href="https://qiita.com/%EF%BC%88"></a>'), @obj.to_enml_from('<a href="%EF%BC%88"></a>')
   end
   def test_to_enml_form_4
-    assert_equal create_enml_body('<div><code>code</code></div>'), @obj.to_enml_from('<div><pre>code</pre></div>')
+    assert_equal create_enml_body("<div style=\"#{QiitaToEvernote::P_CODE_BLOCK_STYLE .map{|k,v| "#{k}: #{v}"}.join(";")}\"><code style=\"#{QiitaToEvernote::CODE_BLOCK_STYLE .map{|k,v| "#{k}: #{v}"}.join(";")}\">code</code></div>"), @obj.to_enml_from('<div><pre>code</pre></div>')
   end
 
   private
