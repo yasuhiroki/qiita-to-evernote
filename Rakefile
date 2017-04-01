@@ -6,7 +6,7 @@ require 'qiita'
 require 'qiita-markdown'
 require 'evernote-thrift'
 
-require_relative './html-to-enml'
+require_relative './lib/q2e'
 
 Dotenv.load
 
