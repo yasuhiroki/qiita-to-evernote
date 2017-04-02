@@ -28,7 +28,7 @@ GEM
       mime-types (>= 1.19)
       rugged (>= 0.23.0b)
     greenmat (3.2.2.2)
-    h2e-rb (0.1.0)
+    h2e-rb (0.1.1)
       oga (~> 2.9)
     html-pipeline (2.5.0)
       activesupport (>= 2)
