@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require "Qiita2Evernote"
+
+Dotenv.load
+Qiita2Evernote::Cli.start
